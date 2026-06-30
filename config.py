@@ -1,0 +1,5 @@
+ASSISTANT_NAME = "Jarvis"
+USER_NAME = "Prayash"
+
+VOICE_RATE = 180
+VOICE_VOLUME = 1.0
