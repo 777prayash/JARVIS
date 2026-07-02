@@ -1,7 +1,21 @@
+from core.auto_scan import scan_pc
+from core.media import play_movie
 import os
 import webbrowser
 import pyautogui
 
+from core.folder_manager import (
+    remember_folder,
+    remove_folder,
+    get_folder
+)
+
+from core.app_manager import (
+    remember_app,
+    open_app,
+    remove_app,
+    get_app_path
+)
 from core.speech import speak
 
 # ===========================
@@ -24,6 +38,12 @@ WEBSITES = {
     "flipkart": "https://flipkart.com",
     "netflix": "https://netflix.com",
     "x": "https://x.com"
+    "claude": "https://claude.ai",
+    "perplexity": "https://www.perplexity.ai",
+    "gemini": "https://gemini.google.com",
+    "canva": "https://www.canva.com",
+    "leetcode": "https://leetcode.com",
+    "huggingface": "https://huggingface.co",
 }
 
 # ===========================
@@ -56,23 +76,70 @@ def execute(command):
     command = command.lower().strip()
 
     # ===========================
-    # OPEN WEBSITE
+    # AUTO SCAN
     # ===========================
 
-    if command.startswith("open "):
+    if (
+    "scan my pc" in command
+    or "scan computer" in command
+    or "initialize" in command
+    or "initialize jarvis" in command
+    or "system scan" in command
+    or "scan everything" in command
+    ):
 
-        name = command.replace("open", "").strip()
+        speak("Scanning your computer. This may take a few moments.")
 
-        if name in WEBSITES:
-            speak(f"Opening {name}")
-            webbrowser.open(WEBSITES[name])
-            return True
+        apps = scan_pc()
 
-        if name in APPS:
-            speak(f"Opening {name}")
-            os.system(APPS[name])
-            return True
+        if apps:
+            speak(f"Scan completed. I found {len(apps)} applications.")
+        else:
+            speak("I couldn't find any supported applications.")
 
+        return True
+
+    # REMEMBER FOLDER
+    # ===========================
+
+    if command.startswith("remember my ") and " folder" in command:
+
+        folder = (
+            command.replace("remember my", "")
+            .replace("folder", "")
+            .strip()
+        )
+
+        speak(f"Please select your {folder} folder.")
+
+        if remember_folder(folder):
+            speak(f"I will remember your {folder} folder.")
+        else:
+            speak("No folder selected.")
+
+        return True
+
+   
+    # ===========================
+    # FORGET FOLDER
+    # ===========================
+
+    if command.startswith("forget my ") and " folder" in command:
+
+        folder = (
+            command.replace("forget my", "")
+            .replace("folder", "")
+            .strip()
+        )
+
+        if remove_folder(folder):
+            speak(f"I forgot your {folder} folder.")
+        else:
+            speak("I don't remember that folder.")
+
+        return True
+
+    
     # ===========================
     # CLOSE WEBSITE TAB
     # ===========================
@@ -103,58 +170,53 @@ def execute(command):
             return True
 
     # ===========================
-    # GOOGLE SEARCH
-    # ===========================
-
-    if command.startswith("search google for"):
-
-        query = command.replace(
-            "search google for", ""
-        ).strip()
-
-        speak(f"Searching Google for {query}")
-
-        webbrowser.open(
-            f"https://www.google.com/search?q={query}"
-        )
-
-        return True
-
-    # ===========================
-    # YOUTUBE SEARCH
-    # ===========================
-
-    if command.startswith("search youtube for"):
-
-        query = command.replace(
-            "search youtube for", ""
-        ).strip()
-
-        speak(f"Searching YouTube for {query}")
-
-        webbrowser.open(
-            f"https://www.youtube.com/results?search_query={query}"
-        )
-
-        return True
-
-    # ===========================
     # PLAY SONG
     # ===========================
 
-    if command.startswith("play"):
+    # ===========================
+    # PLAY MOVIE OR YOUTUBE
+    # ===========================
 
-        song = (
+    if command.startswith("play "):
+
+        media = (
             command.replace("play", "")
+            .replace("on vlc", "")
             .replace("on youtube", "")
             .replace("youtube", "")
             .strip()
         )
 
-        speak(f"Searching YouTube for {song}")
+        # Play locally using VLC
+        if "on vlc" in command:
+
+            vlc_path = get_app_path("vlc")
+
+            if not vlc_path:
+                speak("Please remember VLC first.")
+                return True
+
+            folders = []
+
+            for key in ["movies", "music", "anime", "series"]:
+
+                folder = get_folder(key)
+
+                if folder:
+                    folders.append(folder)
+
+            if play_movie(media, vlc_path, folders):
+                speak(f"Playing {media}")
+            else:
+                speak(f"I could not find {media}.")
+
+            return True
+
+        # Otherwise search YouTube
+        speak(f"Searching YouTube for {media}")
 
         webbrowser.open(
-            f"https://www.youtube.com/results?search_query={song}"
+            f"https://www.youtube.com/results?search_query={media}"
         )
 
         return True
