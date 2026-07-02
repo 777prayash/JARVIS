@@ -1,4 +1,5 @@
-from core.intent import detect
+from core.parser import parse
+
 from skills.apps import execute as app_skill
 from skills.browser import execute as browser_skill
 from skills.search import execute as search_skill
@@ -8,9 +9,9 @@ from skills.system import execute as system_skill
 
 def process(command):
 
-    intent = detect(command)
+    data = parse(command)
 
-    print(f"[BRAIN] Intent -> {intent}")
+    print(data)
 
     if app_skill(command):
         return True
