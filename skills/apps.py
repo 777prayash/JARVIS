@@ -17,6 +17,14 @@ APPS = {
     "command prompt": "start cmd"
 }
 
+CLOSE_APPS = {
+    "chrome": "chrome.exe",
+    "notepad": "notepad.exe",
+    "calculator": ["CalculatorApp.exe", "calc.exe"],
+    "paint": "mspaint.exe",
+    "command prompt": "cmd.exe"
+}
+
 
 def execute(command):
 
@@ -60,6 +68,25 @@ def execute(command):
         if app in APPS:
             speak(f"Opening {app}")
             os.system(APPS[app])
+            return True
+        
+        # Close App
+    if command.startswith("close "):
+
+        app = command.replace("close", "").strip()
+
+        if app in CLOSE_APPS:
+
+            speak(f"Closing {app}")
+
+            process = CLOSE_APPS[app]
+
+            if isinstance(process, list):
+                for p in process:
+                    os.system(f"taskkill /f /im {p}")
+            else:
+                os.system(f"taskkill /f /im {process}")
+
             return True
 
     return False
